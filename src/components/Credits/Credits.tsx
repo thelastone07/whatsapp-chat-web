@@ -4,9 +4,9 @@ function Credits() {
       <small>
         Tweaked by <a href="https://thelastone07.github.io">Dhananjaya :)</a>
         <br />
-        View{' '}
+        Contribute{' '}
         <a href="https://github.com/thelastone07/whatsapp-chat-web">
-          Contribute
+          here
         </a>
       </small>
     </div>
