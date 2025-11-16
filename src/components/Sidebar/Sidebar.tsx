@@ -3,7 +3,6 @@ import { useAtom, useAtomValue, useSetAtom } from 'jotai';
 
 import Credits from '../Credits/Credits';
 import FilterModeSelector from '../FilterModeSelector/FilterModeSelector';
-import FilterMessageLimitsForm from '../FilterMessageLimitsForm/FilterMessageLimitsForm';
 import FilterMessageDatesForm from '../FilterMessageDatesForm/FilterMessageDatesForm';
 import ActiveUserSelector from '../ActiveUserSelector/ActiveUserSelector';
 
@@ -18,7 +17,6 @@ import {
 import {
   datesAtom,
   globalFilterModeAtom,
-  limitsAtom,
 } from '../../stores/filters';
 import { FilterMode } from '../../types';
 
@@ -27,7 +25,6 @@ function Sidebar() {
   const [isAnonymous, setIsAnonymous] = useAtom(isAnonymousAtom);
   const [filterMode, setFilterMode] = useState<FilterMode>('index');
   const setGlobalFilterMode = useSetAtom(globalFilterModeAtom);
-  const [limits, setLimits] = useAtom(limitsAtom);
   const setDates = useSetAtom(datesAtom);
   const messagesDateBounds = useAtomValue(messagesDateBoundsAtom);
   const participants = useAtomValue(participantsAtom);
@@ -35,17 +32,6 @@ function Sidebar() {
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const openButtonRef = useRef<HTMLButtonElement>(null);
-
-  const setMessageLimits = (e: React.FormEvent<HTMLFormElement>) => {
-    const entries = Object.fromEntries(new FormData(e.currentTarget));
-
-    e.preventDefault();
-    setLimits({
-      low: parseInt(entries.lowerLimit as string, 10),
-      high: parseInt(entries.upperLimit as string, 10),
-    });
-    setGlobalFilterMode('index');
-  };
 
   const setMessagesByDate = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -69,6 +55,11 @@ function Sidebar() {
     if (isMenuOpen) closeButtonRef.current?.focus();
     else openButtonRef.current?.focus();
   }, [isMenuOpen]);
+
+  // Sync filter mode changes to global state
+  useEffect(() => {
+    setGlobalFilterMode(filterMode);
+  }, [filterMode, setGlobalFilterMode]);
 
   return (
     <>
@@ -100,12 +91,6 @@ function Sidebar() {
               filterMode={filterMode}
               setFilterMode={setFilterMode}
             />
-            {filterMode === 'index' && (
-              <FilterMessageLimitsForm
-                limits={limits}
-                setMessageLimits={setMessageLimits}
-              />
-            )}
             {filterMode === 'date' && (
               <FilterMessageDatesForm
                 messagesDateBounds={messagesDateBounds}

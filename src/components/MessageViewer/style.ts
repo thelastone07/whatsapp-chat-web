@@ -16,6 +16,8 @@ const Container = styled.div`
   background-color: ${viewerBackgroundColor};
   background-image: url(${bgImage});
   background-attachment: fixed;
+  overflow-y: auto;
+  overflow-x: hidden;
 
   @media (min-width: 700px) {
     padding: 0 10%;

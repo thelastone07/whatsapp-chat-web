@@ -16,6 +16,7 @@ import {
   limitsAtom,
 } from '../../stores/filters';
 import { filterMessagesByDate, getISODateString } from '../../utils/utils';
+import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
 
 function MessageViewer() {
   const limits = useAtomValue(limitsAtom);
@@ -26,6 +27,27 @@ function MessageViewer() {
   const { start: startDate, end: endDate } = useAtomValue(datesAtom);
   const endDatePlusOne = new Date(endDate);
   endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
+
+  // Apply date filter first if in date mode
+  const filteredMessages =
+    filterMode === 'date'
+      ? filterMessagesByDate(messages, startDate, endDatePlusOne)
+      : messages;
+
+  // Use infinite scroll for index mode, static filtering for date mode
+  const { displayCount, loadMoreTriggerRef, hasMore } = useInfiniteScroll({
+    itemsPerPage: 100,
+    totalItems: filteredMessages.length,
+    enabled: filterMode === 'index',
+  });
+
+  const renderedMessages =
+    filterMode === 'index'
+      ? filteredMessages.slice(0, displayCount)
+      : filteredMessages;
+
+  const isLimited = renderedMessages.length !== filteredMessages.length;
+
   const colorMap: Record<string, string> = useMemo(
     () =>
       participants.reduce(
@@ -38,13 +60,6 @@ function MessageViewer() {
     [participants],
   );
 
-  const renderedMessages =
-    filterMode === 'index'
-      ? messages.slice(limits.low - 1, limits.high)
-      : filterMessagesByDate(messages, startDate, endDatePlusOne);
-
-  const isLimited = renderedMessages.length !== messages.length;
-
   useEffect(() => {
     setActiveUser(participants[0] || '');
   }, [setActiveUser, participants]);
@@ -54,20 +69,18 @@ function MessageViewer() {
       {messages.length > 0 && (
         <S.P>
           <S.Info>
-            {isLimited && filterMode === 'index' && (
+            {filterMode === 'index' && (
               <span>
-                Showing messages {limits.low} to{' '}
-                {Math.min(limits.high, messages.length)} (
-                {renderedMessages.length} out of {messages.length})
+                Showing {renderedMessages.length} out of {filteredMessages.length} messages
+                {hasMore && ' - Scroll down to load more'}
               </span>
             )}
-            {isLimited && filterMode === 'date' && (
+            {filterMode === 'date' && (
               <span>
                 Showing messages from {getISODateString(startDate)} to{' '}
-                {getISODateString(endDate)}
+                {getISODateString(endDate)} ({renderedMessages.length} messages)
               </span>
             )}
-            {!isLimited && <span>Showing all {messages.length} messages</span>}
           </S.Info>
         </S.P>
       )}
@@ -88,6 +101,9 @@ function MessageViewer() {
             />
           );
         })}
+        {filterMode === 'index' && hasMore && (
+          <div ref={loadMoreTriggerRef} style={{ height: '1px' }} />
+        )}
       </S.List>
     </S.Container>
   );
