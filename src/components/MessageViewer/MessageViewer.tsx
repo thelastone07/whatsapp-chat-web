@@ -71,17 +71,35 @@ function MessageViewer() {
     setActiveUser(participants[0] || '');
   }, [setActiveUser, participants]);
 
-  // Scroll to bottom when reverse mode is enabled or when messages are loaded in reverse mode
+  // Scroll to bottom when reverse mode is enabled
+  useEffect(() => {
+    if (isReverseScroll && containerRef.current) {
+      // Use a slight delay to ensure messages have rendered
+      const scrollToBottom = () => {
+        if (containerRef.current) {
+          containerRef.current.scrollTop = containerRef.current.scrollHeight;
+          console.log('Scrolled to bottom - scrollTop:', containerRef.current.scrollTop, 'scrollHeight:', containerRef.current.scrollHeight);
+        }
+      };
+
+      // Try immediately and also after a delay
+      requestAnimationFrame(() => {
+        scrollToBottom();
+        setTimeout(scrollToBottom, 50);
+      });
+    }
+  }, [isReverseScroll]);
+
+  // Keep scrolled to bottom when new messages load in reverse mode
   useEffect(() => {
     if (isReverseScroll && containerRef.current && renderedMessages.length > 0) {
-      // Small delay to ensure DOM has updated
-      setTimeout(() => {
+      requestAnimationFrame(() => {
         if (containerRef.current) {
           containerRef.current.scrollTop = containerRef.current.scrollHeight;
         }
-      }, 0);
+      });
     }
-  }, [isReverseScroll, messages.length]);
+  }, [isReverseScroll, renderedMessages.length]);
 
   return (
     <S.Container ref={containerRef}>
