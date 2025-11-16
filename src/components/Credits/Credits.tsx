@@ -2,11 +2,11 @@ function Credits() {
   return (
     <div>
       <small>
-        Made by <a href="https://lorisbettazza.com">Loris Bettazza</a>
+        Tweaked by <a href="https://thelastone07.github.io">Dhananjaya :)</a>
         <br />
         View{' '}
-        <a href="https://github.com/Pustur/whatsapp-chat-parser-website">
-          Source code
+        <a href="https://github.com/thelastone07/whatsapp-chat-web">
+          Contribute
         </a>
       </small>
     </div>

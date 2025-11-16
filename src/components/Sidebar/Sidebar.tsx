@@ -1,9 +1,7 @@
-import { useRef, useEffect, useState, startTransition } from 'react';
-import { useAtom, useAtomValue, useSetAtom } from 'jotai';
+import { useRef, useEffect, startTransition } from 'react';
+import { useAtom, useAtomValue } from 'jotai';
 
 import Credits from '../Credits/Credits';
-import FilterModeSelector from '../FilterModeSelector/FilterModeSelector';
-import FilterMessageDatesForm from '../FilterMessageDatesForm/FilterMessageDatesForm';
 import ActiveUserSelector from '../ActiveUserSelector/ActiveUserSelector';
 
 import * as S from './style';
@@ -11,38 +9,21 @@ import {
   activeUserAtom,
   isAnonymousAtom,
   isMenuOpenAtom,
-  messagesDateBoundsAtom,
   participantsAtom,
 } from '../../stores/global';
 import {
-  datesAtom,
-  globalFilterModeAtom,
   isReverseScrollAtom,
 } from '../../stores/filters';
-import { FilterMode } from '../../types';
 
 function Sidebar() {
   const [isMenuOpen, setIsMenuOpen] = useAtom(isMenuOpenAtom);
   const [isAnonymous, setIsAnonymous] = useAtom(isAnonymousAtom);
   const [isReverseScroll, setIsReverseScroll] = useAtom(isReverseScrollAtom);
-  const [filterMode, setFilterMode] = useState<FilterMode>('index');
-  const setGlobalFilterMode = useSetAtom(globalFilterModeAtom);
-  const setDates = useSetAtom(datesAtom);
-  const messagesDateBounds = useAtomValue(messagesDateBoundsAtom);
   const participants = useAtomValue(participantsAtom);
   const [activeUser, setActiveUser] = useAtom(activeUserAtom);
 
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const openButtonRef = useRef<HTMLButtonElement>(null);
-
-  const setMessagesByDate = (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setDates({
-      start: e.currentTarget.startDate.valueAsDate,
-      end: e.currentTarget.endDate.valueAsDate,
-    });
-    setGlobalFilterMode('date');
-  };
 
   useEffect(() => {
     const keyDownHandler = (e: KeyboardEvent) => {
@@ -57,11 +38,6 @@ function Sidebar() {
     if (isMenuOpen) closeButtonRef.current?.focus();
     else openButtonRef.current?.focus();
   }, [isMenuOpen]);
-
-  // Sync filter mode changes to global state
-  useEffect(() => {
-    setGlobalFilterMode(filterMode);
-  }, [filterMode, setGlobalFilterMode]);
 
   return (
     <>
@@ -89,16 +65,6 @@ function Sidebar() {
         </S.MenuCloseButton>
         <S.SidebarContainer>
           <S.SidebarChildren>
-            <FilterModeSelector
-              filterMode={filterMode}
-              setFilterMode={setFilterMode}
-            />
-            {filterMode === 'date' && (
-              <FilterMessageDatesForm
-                messagesDateBounds={messagesDateBounds}
-                setMessagesByDate={setMessagesByDate}
-              />
-            )}
             <ActiveUserSelector
               participants={participants}
               activeUser={activeUser}
@@ -117,17 +83,15 @@ function Sidebar() {
               />
             </S.Field>
 
-            {filterMode === 'index' && (
-              <S.Field>
-                <S.Label htmlFor="reverse-scroll">Reverse scroll (newest first)</S.Label>
-                <S.ToggleCheckbox
-                  id="reverse-scroll"
-                  type="checkbox"
-                  checked={isReverseScroll}
-                  onChange={() => setIsReverseScroll(bool => !bool)}
-                />
-              </S.Field>
-            )}
+            <S.Field>
+              <S.Label htmlFor="reverse-scroll">Reverse scroll (newest first)</S.Label>
+              <S.ToggleCheckbox
+                id="reverse-scroll"
+                type="checkbox"
+                checked={isReverseScroll}
+                onChange={() => setIsReverseScroll(bool => !bool)}
+              />
+            </S.Field>
           </S.SidebarChildren>
           <Credits />
         </S.SidebarContainer>
