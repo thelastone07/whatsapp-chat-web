@@ -29,4 +29,6 @@ const datesAtom = atom<DateBounds>({
   end: new Date(),
 });
 
-export { globalFilterModeAtom, limitsAtom, datesAtom };
+const isReverseScrollAtom = atom<boolean>(false);
+
+export { globalFilterModeAtom, limitsAtom, datesAtom, isReverseScrollAtom };

@@ -4,9 +4,15 @@ interface UseInfiniteScrollOptions {
   itemsPerPage: number;
   totalItems: number;
   enabled: boolean;
+  reverse?: boolean;
 }
 
-export function useInfiniteScroll({ itemsPerPage, totalItems, enabled }: UseInfiniteScrollOptions) {
+export function useInfiniteScroll({
+  itemsPerPage,
+  totalItems,
+  enabled,
+  reverse = false
+}: UseInfiniteScrollOptions) {
   const [displayCount, setDisplayCount] = useState(itemsPerPage);
   const loadMoreTriggerRef = useRef<HTMLDivElement>(null);
   const loadingRef = useRef(false);
@@ -14,7 +20,7 @@ export function useInfiniteScroll({ itemsPerPage, totalItems, enabled }: UseInfi
   const loadMore = useCallback(() => {
     if (loadingRef.current || displayCount >= totalItems) return;
 
-    console.log('Last element visible - loading more items!');
+    console.log(`${reverse ? 'First' : 'Last'} element visible - loading more items!`);
     loadingRef.current = true;
 
     setDisplayCount(prev => {
@@ -24,7 +30,7 @@ export function useInfiniteScroll({ itemsPerPage, totalItems, enabled }: UseInfi
       }, 100);
       return newCount;
     });
-  }, [displayCount, totalItems, itemsPerPage]);
+  }, [displayCount, totalItems, itemsPerPage, reverse]);
 
   useEffect(() => {
     if (!enabled) return;
@@ -54,13 +60,13 @@ export function useInfiniteScroll({ itemsPerPage, totalItems, enabled }: UseInfi
     };
   }, [enabled, loadMore]);
 
-  // Reset display count when total items change (new file loaded)
+  // Reset display count when total items change (new file loaded) or reverse mode changes
   useEffect(() => {
     if (enabled && totalItems > 0) {
       setDisplayCount(Math.min(itemsPerPage, totalItems));
       loadingRef.current = false;
     }
-  }, [totalItems, itemsPerPage, enabled]);
+  }, [totalItems, itemsPerPage, enabled, reverse]);
 
   return {
     displayCount,

@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect } from 'react';
+import React, { useMemo, useEffect, useRef } from 'react';
 import { useAtom, useAtomValue } from 'jotai';
 
 import Message from '../Message/Message';
@@ -14,6 +14,7 @@ import {
   datesAtom,
   globalFilterModeAtom,
   limitsAtom,
+  isReverseScrollAtom,
 } from '../../stores/filters';
 import { filterMessagesByDate, getISODateString } from '../../utils/utils';
 import { useInfiniteScroll } from '../../hooks/useInfiniteScroll';
@@ -24,9 +25,11 @@ function MessageViewer() {
   const participants = useAtomValue(participantsAtom);
   const messages = useAtomValue(messagesAtom);
   const filterMode = useAtomValue(globalFilterModeAtom);
+  const isReverseScroll = useAtomValue(isReverseScrollAtom);
   const { start: startDate, end: endDate } = useAtomValue(datesAtom);
   const endDatePlusOne = new Date(endDate);
   endDatePlusOne.setDate(endDatePlusOne.getDate() + 1);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   // Apply date filter first if in date mode
   const filteredMessages =
@@ -39,11 +42,15 @@ function MessageViewer() {
     itemsPerPage: 100,
     totalItems: filteredMessages.length,
     enabled: filterMode === 'index',
+    reverse: isReverseScroll,
   });
 
+  // In reverse mode, show last N messages; in normal mode, show first N messages
   const renderedMessages =
     filterMode === 'index'
-      ? filteredMessages.slice(0, displayCount)
+      ? isReverseScroll
+        ? filteredMessages.slice(-displayCount) // Last N messages
+        : filteredMessages.slice(0, displayCount) // First N messages
       : filteredMessages;
 
   const isLimited = renderedMessages.length !== filteredMessages.length;
@@ -64,8 +71,20 @@ function MessageViewer() {
     setActiveUser(participants[0] || '');
   }, [setActiveUser, participants]);
 
+  // Scroll to bottom when reverse mode is enabled or when messages are loaded in reverse mode
+  useEffect(() => {
+    if (isReverseScroll && containerRef.current && renderedMessages.length > 0) {
+      // Small delay to ensure DOM has updated
+      setTimeout(() => {
+        if (containerRef.current) {
+          containerRef.current.scrollTop = containerRef.current.scrollHeight;
+        }
+      }, 0);
+    }
+  }, [isReverseScroll, messages.length]);
+
   return (
-    <S.Container>
+    <S.Container ref={containerRef}>
       {messages.length > 0 && (
         <S.P>
           <S.Info>
@@ -86,6 +105,9 @@ function MessageViewer() {
       )}
 
       <S.List>
+        {filterMode === 'index' && hasMore && isReverseScroll && (
+          <div ref={loadMoreTriggerRef} style={{ height: '1px' }} />
+        )}
         {renderedMessages.map((message, i, arr) => {
           const prevMessage = arr[i - 1];
 
@@ -101,7 +123,7 @@ function MessageViewer() {
             />
           );
         })}
-        {filterMode === 'index' && hasMore && (
+        {filterMode === 'index' && hasMore && !isReverseScroll && (
           <div ref={loadMoreTriggerRef} style={{ height: '1px' }} />
         )}
       </S.List>

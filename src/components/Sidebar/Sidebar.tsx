@@ -17,12 +17,14 @@ import {
 import {
   datesAtom,
   globalFilterModeAtom,
+  isReverseScrollAtom,
 } from '../../stores/filters';
 import { FilterMode } from '../../types';
 
 function Sidebar() {
   const [isMenuOpen, setIsMenuOpen] = useAtom(isMenuOpenAtom);
   const [isAnonymous, setIsAnonymous] = useAtom(isAnonymousAtom);
+  const [isReverseScroll, setIsReverseScroll] = useAtom(isReverseScrollAtom);
   const [filterMode, setFilterMode] = useState<FilterMode>('index');
   const setGlobalFilterMode = useSetAtom(globalFilterModeAtom);
   const setDates = useSetAtom(datesAtom);
@@ -114,6 +116,18 @@ function Sidebar() {
                 }
               />
             </S.Field>
+
+            {filterMode === 'index' && (
+              <S.Field>
+                <S.Label htmlFor="reverse-scroll">Reverse scroll (newest first)</S.Label>
+                <S.ToggleCheckbox
+                  id="reverse-scroll"
+                  type="checkbox"
+                  checked={isReverseScroll}
+                  onChange={() => setIsReverseScroll(bool => !bool)}
+                />
+              </S.Field>
+            )}
           </S.SidebarChildren>
           <Credits />
         </S.SidebarContainer>
